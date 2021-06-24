@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import axios from 'axios';
 import { Button } from '@material-ui/core';
+import { getPath } from './App';
 
 // export const mapsUrl = 'http://localhost:3000';
 // export const mapsUrl = 'http://192.168.37.94:3000';
@@ -32,7 +33,7 @@ const Home = () => {
   }, []);
 
   const goToMap = mapId => {
-    history.push(`/maps/${mapId}`);
+    history.push(getPath(`/maps/${mapId}`));
   };
 
   const mapLinks = maps.map(({ name, _id }) => {

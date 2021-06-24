@@ -9,7 +9,7 @@ import {
 import Editor from './Editor';
 import Home from './Home';
 
-console.log('got app');
+export const getPath = path => `${prefix}${path}`;
 
 const prefix = '/map-creator';
 
@@ -17,13 +17,13 @@ const App = () => {
   return (
     <Router>
       <Switch>
-        <Route exact path={`${prefix}/`}>
+        <Route exact path={getPath('/')}>
           <Home />
         </Route>
-        <Route path={`${prefix}/maps/:mapId`}>
+        <Route path={getPath('/maps/:mapId')}>
           <Editor />
         </Route>
-        <Redirect to={`${prefix}/`} />
+        <Redirect to={getPath('/')} />
       </Switch>
     </Router>
   );
