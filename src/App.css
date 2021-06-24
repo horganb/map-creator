@@ -3,26 +3,58 @@
 }
 
 .App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-  }
+  height: 100%;
 }
 
 .App-header {
-  background-color: #282c34;
+  background-color: white;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   font-size: calc(10px + 2vmin);
-  color: white;
+  color: gray;
 }
 
-.App-link {
-  color: #61dafb;
+.map-button {
+  margin: 0.5rem !important;
+}
+
+.image-url {
+  width: 50rem;
+  max-width: calc(100% - 2rem);
+  margin-top: 1rem !important;
+}
+
+.metadata-section {
+  position: absolute;
+  width: 100%;
+  top: 1rem;
+}
+
+.map-name {
+  margin-top: 1rem !important;
+}
+
+.image-container {
+  position: relative;
+  height: 40vmin;
+}
+
+.pin {
+  position: absolute;
+  transform: translateX(-50%) translateY(-100%);
+  cursor: pointer;
+}
+
+.description-card {
+  position: absolute;
+  transition: opacity 0.15s !important;
+  width: 30rem !important;
+}
+
+.title-field,
+.body-field {
+  width: 100%;
 }
