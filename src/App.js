@@ -8,6 +8,7 @@ import {
 } from 'react-router-dom';
 import Editor from './Editor';
 import Home from './Home';
+import Viewer from './Viewer';
 
 export const getPath = path => `${prefix}${path}`;
 
@@ -19,6 +20,9 @@ const App = () => {
       <Switch>
         <Route exact path={getPath('/')}>
           <Home />
+        </Route>
+        <Route path={getPath('/maps/:mapId/view')}>
+          <Viewer />
         </Route>
         <Route path={getPath('/maps/:mapId')}>
           <Editor />

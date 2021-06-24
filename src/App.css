@@ -49,9 +49,6 @@
 }
 
 .description-card {
-  position: absolute;
-  transition: opacity 0.15s !important;
-  width: 30rem !important;
 }
 
 .title-field,
