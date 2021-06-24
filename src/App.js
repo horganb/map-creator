@@ -5,31 +5,30 @@ import {
   Route,
   Redirect,
   Switch,
+  HashRouter,
 } from 'react-router-dom';
 import Editor from './Editor';
 import Home from './Home';
 import Viewer from './Viewer';
 
-export const getPath = path => `${prefix}${path}`;
-
 const prefix = '/map-creator';
 
 const App = () => {
   return (
-    <Router>
+    <HashRouter basename={prefix}>
       <Switch>
-        <Route exact path={getPath('/')}>
+        <Route exact path={'/'}>
           <Home />
         </Route>
-        <Route path={getPath('/maps/:mapId/view')}>
+        <Route path={'/maps/:mapId/view'}>
           <Viewer />
         </Route>
-        <Route path={getPath('/maps/:mapId')}>
+        <Route path={'/maps/:mapId'}>
           <Editor />
         </Route>
-        <Redirect to={getPath('/')} />
+        <Redirect to={'/'} />
       </Switch>
-    </Router>
+    </HashRouter>
   );
 };
 

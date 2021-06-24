@@ -17,7 +17,6 @@ import RoomIcon from '@material-ui/icons/Room';
 import CloseIcon from '@material-ui/icons/Close';
 import { v4 as generateId } from 'uuid';
 import usePersistedState from './usePersistedState';
-import { getPath } from './App';
 
 const Editor = () => {
   const { mapId } = useParams();
@@ -58,7 +57,7 @@ const Editor = () => {
   }, [mapId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const goHome = () => {
-    history.push(getPath('/'));
+    history.push('/');
   };
 
   const getPosition = el => {
