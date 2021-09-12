@@ -2,9 +2,9 @@ import axios from 'axios';
 import cookie from 'cookie';
 import { generateId } from '../utils';
 
-export const mapsUrl = 'http://localhost:3000/';
+// export const mapsUrl = 'http://localhost:3000/';
 // export const mapsUrl = 'http://192.168.37.94:3000/';
-// export const mapsUrl = 'https://map-creator-backend.herokuapp.com/';
+export const mapsUrl = 'https://map-creator-backend.herokuapp.com/';
 
 const rawCookies = document.cookie;
 const cookies = cookie.parse(rawCookies);
