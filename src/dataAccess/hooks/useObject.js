@@ -37,7 +37,7 @@ const useObject = apiUrl => {
 
   /** Returns controls for a specific sub-object. */
   const getProperty = (defaultValue, path) => {
-    const value = getFieldValue(data, path) || defaultValue;
+    const value = getFieldValue(data, path) ?? defaultValue;
 
     const updateValue = (method, newValue, persist = true) => {
       const oldValue = value;

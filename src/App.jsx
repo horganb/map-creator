@@ -1,21 +1,22 @@
 import './App.css';
 import React from 'react';
 import { Route, Redirect, Switch, HashRouter } from 'react-router-dom';
-import Editor from './Editor';
-import Home from './Home';
+import MapViewer from './MapViewer';
+import MapList from './MapList';
 
+/** Routing for the app. */
 const App = () => {
   return (
     <HashRouter basename={'/'}>
       <Switch>
         <Route exact path={'/'}>
-          <Home />
+          <MapList />
         </Route>
         <Route path={'/maps/:mapId/view'}>
-          <Editor isEditor={false} />
+          <MapViewer isEditor={false} />
         </Route>
         <Route path={'/maps/:mapId'}>
-          <Editor isEditor={true} />
+          <MapViewer isEditor={true} />
         </Route>
         <Redirect to={'/'} />
       </Switch>

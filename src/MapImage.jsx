@@ -1,57 +1,55 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import PropTypes from 'prop-types';
-import {
-  TextField,
-  Card,
-  CardHeader,
-  CardContent,
-  IconButton,
-} from '@material-ui/core';
-import AddCircleIcon from '@material-ui/icons/AddCircle';
-import CloseIcon from '@material-ui/icons/Close';
-import { v4 as generateId } from 'uuid';
+import React, { useEffect, useRef, useState } from 'react';
 import { getImageUrl } from './dataAccess/googleCloudUpload';
+import { generateId, getPosition } from './utils';
+// import AddCircleIcon from '@material-ui/icons/AddCircle';
+import { CircularProgress } from '@material-ui/core';
+import { StyledPin, MapImg } from './styles';
 
-export const getPosition = el => {
-  const rect = el.getBoundingClientRect();
-  return {
-    left: rect.left + window.scrollX,
-    top: rect.top + window.scrollY,
-  };
-};
-
-/** A page of a map. */
-const MapPage = ({ pageControls, isEditor }) => {
+const MapImage = ({
+  isEditor,
+  pageControls,
+  selectedPin,
+  setSelectedPin,
+  contentRef,
+}) => {
   const { imageId, pins, setPins } = pageControls;
 
-  const [selectedPin, setSelectedPin] = useState();
   const [imagePosition, setImagePosition] = useState();
+  const [imageLoading, setImageLoading] = useState(true);
 
   const pinRefs = useRef({});
-  const contentRef = useRef();
   const imageRef = useRef();
   const dragging = useRef(false);
 
-  const image = imageRef.current;
-  const content = contentRef.current;
+  const imageSrc = imageId && getImageUrl(imageId);
 
-  const updateImagePosition = useCallback(() => {
-    if (image) {
-      const { offsetLeft, offsetTop, width, height } = image;
+  useEffect(() => {
+    setImageLoading(true);
+  }, [imageSrc]);
+
+  useEffect(() => {
+    if (!imageLoading) {
+      updateImagePosition();
+    }
+  }, [imageLoading]);
+
+  const updateImagePosition = () => {
+    if (imageRef.current) {
+      const { offsetLeft, offsetTop, width, height } = imageRef.current;
       setImagePosition({ offsetLeft, offsetTop, width, height });
     }
-  }, [image]);
+  };
 
   // When the content is resized, recalculate image dimensions and position
   useEffect(() => {
-    if (!content) return;
+    if (!contentRef.current) return;
     const observer = new ResizeObserver(() => {
       updateImagePosition();
-    }).observe(content);
+    }).observe(contentRef.current);
     return () => {
       observer?.disconnect();
     };
-  }, [content, updateImagePosition]);
+  }, [contentRef.current, imageRef.current]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const onPinClick = pinId => {
     !dragging.current && setSelectedPin(pinId === selectedPin ? null : pinId);
@@ -73,17 +71,20 @@ const MapPage = ({ pageControls, isEditor }) => {
   };
 
   const getPinCoords = mouseEvent => {
-    const { x: relativeX, y: relativeY } = getRelativeCoords(mouseEvent, image);
-    const x = relativeX / image.width;
-    const y = relativeY / image.height;
+    const { x: relativeX, y: relativeY } = getRelativeCoords(
+      mouseEvent,
+      imageRef.current
+    );
+    const x = relativeX / imageRef.current.width;
+    const y = relativeY / imageRef.current.height;
     return { x, y };
   };
 
   /** Reverse of getPinCoords */
   const getPinLocation = pinCoords => {
-    const { left, top } = getPosition(image);
-    const relativeX = pinCoords.x * image.width;
-    const relativeY = pinCoords.y * image.height;
+    const { left, top } = getPosition(imageRef.current);
+    const relativeX = pinCoords.x * imageRef.current.width;
+    const relativeY = pinCoords.y * imageRef.current.height;
     const x = relativeX + left;
     const y = relativeY + top;
     return { x, y };
@@ -170,8 +171,7 @@ const MapPage = ({ pageControls, isEditor }) => {
       const pinTop = offsetTop + y * imageHeight;
 
       return (
-        <AddCircleIcon
-          className="pin"
+        <StyledPin
           key={pinId}
           style={{
             left: `${pinLeft}px`,
@@ -189,103 +189,20 @@ const MapPage = ({ pageControls, isEditor }) => {
       );
     });
 
-  const pinData = pins[selectedPin];
-
   return (
     <>
-      <div className="content" ref={contentRef}>
-        {renderPins()}
-        {imageId ? (
-          <img
-            src={imageId && getImageUrl(imageId)}
-            onClick={onImageClick}
-            className="map-page-image"
-            alt="Map Page"
-            ref={imageRef}
-            onLoad={updateImagePosition}
-          />
-        ) : (
-          <div ref={imageRef}>
-            Here's how to get started creating your map:
-            <br />
-            <br />
-            1. Choose an image using the upload button above
-            <br />
-            2. Click on the image to add tags
-            <br />
-            3. Click on the tags to edit them
-          </div>
-        )}
-      </div>
-      <div className="footer">
-        <PinCard
-          pin={pinData}
-          onClose={() => setSelectedPin()}
-          setPin={newData => {
-            setPins({
-              ...pins,
-              [selectedPin]: newData,
-            });
-          }}
-          isEditor={isEditor}
-        />
-      </div>
+      {!imageLoading && renderPins()}
+      {imageLoading && <CircularProgress />}
+      <MapImg
+        src={imageSrc}
+        onClick={onImageClick}
+        alt="Map Page"
+        ref={imageRef}
+        onLoad={() => setImageLoading(false)}
+        style={imageLoading ? { display: 'none' } : {}}
+      />
     </>
   );
 };
 
-MapPage.propTypes = {
-  isEditor: PropTypes.bool,
-};
-
-MapPage.defaultProps = {
-  isEditor: true,
-};
-
-export default MapPage;
-
-const PinCard = ({ pin, setPin, onClose, isEditor }) => {
-  const { title, description } = pin || {};
-
-  const cardTitle = isEditor ? (
-    <TextField
-      className="title-field"
-      label="Item Title"
-      value={title || ''}
-      onChange={e => setPin({ ...pin, title: e.target.value })}
-    />
-  ) : (
-    <h5 className="desc-header">{title}</h5>
-  );
-
-  const cardContent = isEditor ? (
-    <TextField
-      className="body-field"
-      label="Item Description"
-      value={description || ''}
-      onChange={e => setPin({ ...pin, description: e.target.value })}
-      variant="outlined"
-      multiline
-      rows={3}
-    />
-  ) : (
-    <p className="desc-body">{description}</p>
-  );
-
-  return (
-    <Card
-      className="description-card"
-      style={!pin ? { opacity: 0 } : { opacity: 1 }}
-    >
-      <CardHeader
-        title={cardTitle}
-        action={
-          <IconButton onClick={onClose}>
-            <CloseIcon />
-          </IconButton>
-        }
-      />
-      <CardContent>{cardContent}</CardContent>
-    </Card>
-  );
-};
+export default MapImage;

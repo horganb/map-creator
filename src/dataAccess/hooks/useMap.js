@@ -2,9 +2,13 @@ import useObject from './useObject';
 
 /** Read/write controls for a single map. */
 const useMap = mapId => {
-  const { mapData, updateData, getProperty, error, loading } = useObject(
-    `maps/${mapId}`
-  );
+  const {
+    data: mapData,
+    updateData,
+    getProperty,
+    error,
+    loading,
+  } = useObject(`maps/${mapId}`);
 
   const [mapName, setMapName] = getProperty('Untitled Map', 'name');
   const [pageOrder, setPageOrder, updatePageOrder] = getProperty(
@@ -19,6 +23,7 @@ const useMap = mapId => {
     const [imageId, setImageId] = getProperty('', `${pagePath}.imageId`);
     const [pageName, setPageName] = getProperty('', `${pagePath}.name`);
     const [pins, setPins] = getProperty({}, `${pagePath}.pins`);
+
     return {
       pageData,
       setPageData,
