@@ -176,7 +176,7 @@ const MapImage = ({
           style={{
             left: `${pinLeft}px`,
             top: `${pinTop}px`,
-            color: isSelected ? 'rgb(61, 161, 143)' : 'rgb(37, 247, 209)',
+            color: isSelected ? '#A9000B' : '#f50057',
             transform: `translateX(-50%) translateY(-50%)${
               isSelected ? 'scale(1.3)' : 'scale(1)'
             }`,

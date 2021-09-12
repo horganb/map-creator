@@ -66,7 +66,7 @@ export const AddImageIcon = styled(AddPhotoAlternate)({
 });
 
 export const PageToolbar = styled(Toolbar)({
-  backgroundColor: 'pink',
+  backgroundColor: '#e0e0e0',
   minHeight: 'auto',
 });
 
