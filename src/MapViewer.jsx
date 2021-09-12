@@ -40,7 +40,7 @@ const MapViewer = ({ isEditor }) => {
     loading,
   } = useMap(mapId);
 
-  const authError = !loading && authToken !== mapData?.owner;
+  const authError = isEditor && !loading && authToken !== mapData?.owner;
   const error = loadError || authError;
 
   const [currentPage, setCurrentPage] = useState();
