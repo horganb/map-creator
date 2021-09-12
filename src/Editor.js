@@ -1,198 +1,233 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import PropTypes from 'prop-types';
 import { useParams, useHistory } from 'react-router-dom';
-import axios from 'axios';
-import { mapsUrl } from './Home';
 import {
   Button,
   TextField,
   CircularProgress,
-  Card,
-  CardHeader,
-  CardContent,
-  IconButton,
-  Popper,
-  Fade,
+  AppBar,
+  Toolbar,
 } from '@material-ui/core';
-import RoomIcon from '@material-ui/icons/Room';
-import CloseIcon from '@material-ui/icons/Close';
+import { ToggleButtonGroup, ToggleButton } from '@material-ui/lab';
+import { uploadFile } from './dataAccess/googleCloudUpload';
+import MapPage from './MapPage';
 import { v4 as generateId } from 'uuid';
-import usePersistedState from './usePersistedState';
+import { getInitialPageData } from './Home';
+import useMap from './dataAccess/hooks/useMap';
+import { UpdateMethods } from './dataAccess/utils';
+import {
+  ArrowForwardIos,
+  ArrowBackIos,
+  AddPhotoAlternate,
+} from '@material-ui/icons';
 
-const Editor = () => {
+const Editor = ({ isEditor }) => {
   const { mapId } = useParams();
   const history = useHistory();
 
-  const [imageURL, setImageURL] = usePersistedState('', 'image.url');
-  const [mapName, setMapName] = usePersistedState('', 'name');
-  const [pins, setPins] = usePersistedState({}, 'pins');
+  const {
+    mapName,
+    setMapName,
+    pageOrder,
+    updatePageOrder,
+    getPageControls,
+    error,
+    loading,
+  } = useMap(mapId);
 
-  const [selectedPin, setSelectedPin] = useState();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-  const [image, setImage] = useState();
-
-  const pinRefs = useRef({});
-
-  // When map is changed, load in the data
-  useEffect(() => {
-    if (mapId) {
-      setLoading(true);
-      axios
-        .get(`${mapsUrl}/maps/${mapId}`)
-        .then(({ data }) => {
-          setError(false);
-          const { name, image, pins } = data;
-          setImageURL(image.url, false);
-          setMapName(name, false);
-          setPins(pins, false);
-        })
-        .catch(e => {
-          console.error(e);
-          setError(true);
-        })
-        .then(() => {
-          setLoading(false);
-        });
-    }
-  }, [mapId]); // eslint-disable-line react-hooks/exhaustive-deps
+  const [currentPage, setCurrentPage] = useState();
 
   const goHome = () => {
     history.push('/');
   };
 
-  const getPosition = el => {
-    const rect = el.getBoundingClientRect();
-    return {
-      left: rect.left + window.scrollX,
-      top: rect.top + window.scrollY,
-    };
-  };
-
-  const addPin = (x, y) => {
-    const id = generateId();
-    setPins({
-      ...pins,
-      [id]: { x, y },
-    });
-  };
-
-  const onImageClick = e => {
-    const { left, top } = getPosition(image);
-    const relativeX = e.pageX - left;
-    const relativeY = e.pageY - top;
-    const xFraction = relativeX / image.width;
-    const yFraction = relativeY / image.height;
-    addPin(xFraction, yFraction);
-  };
-
-  const onPinClick = pinId => {
-    setSelectedPin(pinId === selectedPin ? null : pinId);
-  };
-
-  const onPinRightClick = (pinId, e) => {
-    e.preventDefault();
-    const { [pinId]: _, ...otherPins } = pins;
-    setPins(otherPins);
-    setSelectedPin();
-  };
-
-  const renderPins = () =>
-    image &&
-    Object.keys(pins).map(pinId => {
-      const pinData = pins[pinId];
-      if (!pinData) return undefined;
-      const { x, y } = pinData;
-      const isSelected = selectedPin === pinId;
-
-      const refCallback = el => {
-        if (pinRefs?.current) {
-          pinRefs.current[pinId] = el;
-        }
-      };
-
-      return (
-        <React.Fragment key={pinId}>
-          <RoomIcon
-            className="pin"
-            style={{
-              left: `${x * 100}%`,
-              top: `${y * 100}%`,
-              color: isSelected ? 'yellow' : 'red',
-            }}
-            onClick={() => onPinClick(pinId)}
-            onContextMenu={e => onPinRightClick(pinId, e)}
-            ref={refCallback}
-          />
-          <PinCard
-            pin={pinData}
-            onClose={() => setSelectedPin()}
-            show={isSelected}
-            setPin={newData => {
-              setPins({
-                ...pins,
-                [pinId]: newData,
-              });
-            }}
-            anchorEl={pinRefs?.current?.[pinId]}
-          />
-        </React.Fragment>
-      );
-    });
-
-  const imageCallback = imageEl => {
-    if (imageEl && imageEl !== image) {
-      setImage(imageEl);
-    }
+  const viewMap = () => {
+    history.push(`/maps/${mapId}/view`);
   };
 
   const displayData = !loading && !error;
 
-  return (
-    <div className="App">
-      <header className="App-header">
-        <div className="metadata-section">
-          <Button
-            className="return-home"
-            variant="contained"
-            color="secondary"
-            onClick={goHome}
-          >
-            Back to Home
-          </Button>
-          {displayData && (
+  useEffect(() => {
+    if (displayData && !currentPage) {
+      setCurrentPage(pageOrder[0]);
+    }
+  }, [displayData, currentPage, pageOrder]);
+
+  const handlePageChange = (e, id) => {
+    setCurrentPage(id);
+  };
+
+  const addPage = () => {
+    const pageId = generateId();
+    const pageData = getInitialPageData();
+    const { setPageData } = getPageControls(pageId);
+
+    setPageData(pageData);
+    updatePageOrder(UpdateMethods.PUSH, pageId);
+    setCurrentPage(pageId);
+  };
+
+  const pageButtons = pageOrder.map(pageId => {
+    const { pageName } = getPageControls(pageId);
+    return (
+      <ToggleButton key={pageId} value={pageId}>
+        {pageName}
+      </ToggleButton>
+    );
+  });
+
+  isEditor &&
+    pageButtons.push(
+      <ToggleButton
+        key="add"
+        value="add"
+        onClick={e => {
+          e.preventDefault();
+          addPage();
+        }}
+      >
+        +
+      </ToggleButton>
+    );
+
+  const onChooseFile = e => {
+    const { setImageId } = getPageControls(currentPage);
+
+    uploadFile(e.target.files)
+      .then(fileId => {
+        setImageId(fileId);
+      })
+      .catch(e => {
+        console.error(e);
+      });
+  };
+
+  const header = (
+    <>
+      {isEditor && (
+        <AppBar position={'static'}>
+          <Toolbar style={{ display: 'flex', justifyContent: 'space-between' }}>
             <>
-              <br />
-              <TextField
-                className="map-name"
-                label="Map Name"
-                value={mapName}
-                onChange={e => setMapName(e.target.value)}
-                variant="outlined"
+              <Button
+                className="return-home"
+                variant="contained"
+                color="secondary"
+                onClick={goHome}
+              >
+                Back to Home
+              </Button>
+            </>
+            {displayData && (
+              <>
+                <TextField
+                  className="map-name"
+                  label="Map Name"
+                  value={mapName}
+                  onChange={e => setMapName(e.target.value)}
+                  variant="outlined"
+                />
+                <div>
+                  <input
+                    type="file"
+                    id="file"
+                    accept={'image/*'}
+                    onChange={onChooseFile}
+                    style={{ display: 'none' }}
+                  />
+                  <label htmlFor="file">
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      component="span"
+                    >
+                      <AddPhotoAlternate style={{ marginRight: '0.5rem' }} />
+                      Upload
+                    </Button>
+                  </label>
+                  <Button
+                    className="view-map"
+                    variant="contained"
+                    color="primary"
+                    onClick={viewMap}
+                  >
+                    View Map
+                  </Button>
+                </div>
+              </>
+            )}
+          </Toolbar>
+        </AppBar>
+      )}
+      <Toolbar style={{ backgroundColor: 'pink' }}>
+        <ToggleButtonGroup
+          value={currentPage}
+          exclusive
+          onChange={handlePageChange}
+          style={{ display: 'flex', margin: '8px 0', overflow: 'auto' }}
+        >
+          {pageButtons}
+        </ToggleButtonGroup>
+      </Toolbar>
+      {!isEditor && (
+        <Toolbar style={{ justifyContent: 'center' }}>
+          Tap on an item to learn more about it.
+        </Toolbar>
+      )}
+    </>
+  );
+
+  const getContent = () => {
+    if (displayData) {
+      const pageControls = getPageControls(currentPage);
+      return (
+        <>
+          {pageOrder.length > 1 && (
+            <>
+              <ArrowBackIos
+                style={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '0.5rem',
+                  cursor: 'pointer',
+                }}
+                onClick={() => {
+                  const currentPageIndex = pageOrder.indexOf(currentPage);
+                  if (currentPageIndex === 0) {
+                    setCurrentPage(pageOrder[pageOrder.length - 1]);
+                  } else {
+                    setCurrentPage(pageOrder[currentPageIndex - 1]);
+                  }
+                }}
               />
-              <br />
-              <TextField
-                className="image-url"
-                label="Image URL"
-                value={imageURL}
-                onChange={e => setImageURL(e.target.value)}
-                variant="filled"
+              <ArrowForwardIos
+                style={{
+                  position: 'absolute',
+                  top: '50%',
+                  right: '0.5rem',
+                  cursor: 'pointer',
+                }}
+                onClick={() => {
+                  const currentPageIndex = pageOrder.indexOf(currentPage);
+                  if (currentPageIndex === pageOrder.length - 1) {
+                    setCurrentPage(pageOrder[0]);
+                  } else {
+                    setCurrentPage(pageOrder[currentPageIndex + 1]);
+                  }
+                }}
               />
             </>
           )}
-        </div>
-        {displayData && (
-          <div className="image-container">
-            {renderPins()}
-            <img
-              src={imageURL}
-              onClick={onImageClick}
-              className="App-logo"
-              alt="logo"
-              ref={imageCallback}
-            />
-            {/* {renderPinCard()} */}
-          </div>
-        )}
+          <MapPage pageControls={pageControls} isEditor={isEditor} />
+        </>
+      );
+    }
+  };
+
+  return (
+    <div className="App">
+      <header className="App-header">
+        {header}
+        {getContent()}
         {loading && <CircularProgress />}
         {error && <p>Could not load the requested map!</p>}
       </header>
@@ -200,45 +235,12 @@ const Editor = () => {
   );
 };
 
-export default Editor;
-
-const PinCard = ({ x, y, pin, setPin, onClose, show, anchorEl }) => {
-  const { title, description, color } = pin;
-
-  return (
-    <Popper open={show} anchorEl={anchorEl} transition>
-      {({ TransitionProps }) => (
-        <Fade {...TransitionProps} timeout={150}>
-          <Card className="description-card">
-            <CardHeader
-              title={
-                <TextField
-                  className="title-field"
-                  label="Item Title"
-                  value={title}
-                  onChange={e => setPin({ ...pin, title: e.target.value })}
-                />
-              }
-              action={
-                <IconButton onClick={onClose}>
-                  <CloseIcon />
-                </IconButton>
-              }
-            />
-            <CardContent>
-              <TextField
-                className="body-field"
-                label="Item Description"
-                value={description}
-                onChange={e => setPin({ ...pin, description: e.target.value })}
-                variant="outlined"
-                multiline
-                rows={3}
-              />
-            </CardContent>
-          </Card>
-        </Fade>
-      )}
-    </Popper>
-  );
+Editor.propTypes = {
+  isEditor: PropTypes.bool,
 };
+
+Editor.defaultProps = {
+  isEditor: true,
+};
+
+export default Editor;

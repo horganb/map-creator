@@ -1,35 +1,31 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useHistory } from 'react-router-dom';
-import axios from 'axios';
 import { Button } from '@material-ui/core';
+import mapServer from './dataAccess/mapServer';
+import useObject from './dataAccess/hooks/useObject';
 
-// export const mapsUrl = 'http://localhost:3000';
-// export const mapsUrl = 'http://192.168.37.94:3000';
-export const mapsUrl = 'https://map-creator-backend.herokuapp.com';
+export const getInitialPageData = () => ({
+  name: 'Untitled Page',
+  image: {
+    id: '0c1de8f8-c585-4d4a-b5b2-75c8632027b6.jpg',
+  },
+  pins: {},
+});
 
 const initialMapData = {
   name: 'Untitled Map',
-  image: {
-    url: 'https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885__480.jpg',
+  pages: {
+    order: ['page1'],
+    data: {
+      page1: getInitialPageData(),
+    },
   },
-  pins: {},
 };
 
 const Home = () => {
-  const [maps, setMaps] = useState([]);
   const history = useHistory();
 
-  // On initial load, load the list of maps.
-  useEffect(() => {
-    axios
-      .get(`${mapsUrl}/maps`)
-      .then(({ data }) => {
-        setMaps(data);
-      })
-      .catch(e => {
-        console.error(e);
-      });
-  }, []);
+  const { data: maps = [] } = useObject('maps');
 
   const goToMap = mapId => {
     history.push(`/maps/${mapId}`);
@@ -49,8 +45,8 @@ const Home = () => {
   });
 
   const newMap = () => {
-    axios
-      .post(`${mapsUrl}/maps`, initialMapData)
+    mapServer
+      .post('maps', initialMapData)
       .then(({ data }) => {
         goToMap(data);
       })
@@ -68,7 +64,7 @@ const Home = () => {
           color="primary"
           onClick={newMap}
         >
-          Create New
+          Create New Map
         </Button>
         {mapLinks}
       </header>

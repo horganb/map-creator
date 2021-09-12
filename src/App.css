@@ -1,20 +1,81 @@
 .App {
   text-align: center;
+  width: 100%;
+  height: 100%;
 }
 
-.App-logo {
+.map-page-image {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+body {
+  overflow: hidden;
+}
+
+html,
+body,
+#root {
+  margin: 0px;
   height: 100%;
+  width: 100%;
 }
 
 .App-header {
   background-color: white;
-  min-height: 100vh;
+  height: 100%;
+  width: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
   font-size: calc(10px + 2vmin);
   color: gray;
+}
+
+.header {
+  flex: 0 0 auto;
+  min-height: 0;
+  padding-top: 1rem;
+}
+
+.footer {
+  flex: 0 0 auto;
+  min-height: 0;
+}
+
+.footer .MuiCardHeader-root {
+  padding-bottom: 0;
+  text-align: left;
+}
+
+.footer .MuiCardContent-root {
+  padding-top: 0;
+  text-align: left;
+  overflow: auto;
+  height: 5rem;
+}
+
+h5.desc-header {
+  text-transform: uppercase;
+  opacity: 0.5;
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+p.desc-body {
+  margin: 0;
+  font-size: 1.2rem;
+  font-family: Arial;
+}
+
+.content {
+  flex: 1 1 auto;
+  position: relative;
+  min-height: 0;
+  width: calc(100% - 4rem);
+  align-self: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .map-button {
@@ -27,28 +88,33 @@
   margin-top: 1rem !important;
 }
 
-.metadata-section {
-  position: absolute;
-  width: 100%;
-  top: 1rem;
-}
-
 .map-name {
-  margin-top: 1rem !important;
+  margin: 0.5rem 0 !important;
 }
 
-.image-container {
-  position: relative;
-  height: 40vmin;
+.image-wrapper {
+  width: 100%;
+  height: 100%;
+}
+
+.MuiToggleButton-root {
+  padding: 0.25rem 0.5rem !important;
+}
+
+.view-map {
+  margin-left: 1rem !important;
 }
 
 .pin {
   position: absolute;
-  transform: translateX(-50%) translateY(-100%);
   cursor: pointer;
+  transition: transform 0.2s !important;
+  -webkit-tap-highlight-color: rgba(255, 255, 255, 0) !important;
+  padding: 0.5rem !important;
 }
 
 .description-card {
+  transition: opacity 0.2s !important;
 }
 
 .title-field,
