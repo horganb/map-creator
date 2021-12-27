@@ -184,7 +184,7 @@ const MapImage = ({
           onClick={() => onPinClick(pinId)}
           onContextMenu={e => onPinRightClick(pinId, e)}
           ref={refCallback}
-          onMouseDown={startDrag}
+          onMouseDown={isEditor ? startDrag : undefined}
         />
       );
     });
